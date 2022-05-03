@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Adhy Setiawan</title>
+    <link>http://www.adhysetiawan.com/</link>
+    <description>Recent content on Adhy Setiawan</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <lastBuildDate>Mon, 21 Mar 2022 00:00:00 +0000</lastBuildDate><atom:link href="http://www.adhysetiawan.com/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>About</title>
+      <link>http://www.adhysetiawan.com/about/</link>
+      <pubDate>Tue, 03 May 2022 15:07:55 +0800</pubDate>
+      
+      <guid>http://www.adhysetiawan.com/about/</guid>
+      <description>Hi there, my name is Adhy! 👋
+Currently I an Information Security Junior at National University of Singapore 🐯
+I love building and breaking stuff related to computers 💻
+You can find my resume here.</description>
+    </item>
+    
+    <item>
+      <title>WiFi craking - WPA2 Personal</title>
+      <link>http://www.adhysetiawan.com/posts/wifi-cracking/</link>
+      <pubDate>Mon, 21 Mar 2022 00:00:00 +0000</pubDate>
+      
+      <guid>http://www.adhysetiawan.com/posts/wifi-cracking/</guid>
+      <description>Table of Content     Background  WPA2 PSK PTK and the Four-way Handshake MIC (the weakness to be exploited) PMKID (other method to crack PSK)   Tools Steps Hash cracking  hxcpcapng Heuristics   References  WPA2 PSK PMKID Hash cracking     Background    WPA2 PSK (Personal)     Wireless Protected Access 2 (WPA2) is a standard established by the IEEE to secure wireless communication.</description>
+    </item>
+    
+    <item>
+      <title>Introduction to Burp Suite</title>
+      <link>http://www.adhysetiawan.com/posts/intro-to-burp/</link>
+      <pubDate>Sun, 30 Jan 2022 00:00:00 +0000</pubDate>
+      
+      <guid>http://www.adhysetiawan.com/posts/intro-to-burp/</guid>
+      <description>What is Burp Suite?    Burp is all-in-one platform for website security testing. It has a variety of tools, such as:
+ Proxy to intercept, inspect, and modify HTTP requests A repeater to easily edit and re-send HTTP requests An &amp;ldquo;intruder&amp;rdquo; to send multiple requests (one use case is to brute-force a login page) Text encoder/decoder (HTML, URL, Base64, etc.)  Why Burp Suite?    When we are doing security testing, we want to give the application (lots of) unusual inputs.</description>
+    </item>
+    
+  </channel>
+</rss>
