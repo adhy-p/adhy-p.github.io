@@ -21,6 +21,17 @@ gpg --keyserver-options auto-key-retrieve --verify archlinux-x86_64.iso.sig Conf
     </item>
     
     <item>
+      <title>About</title>
+      <link>http://www.adhysetiawan.com/about/</link>
+      <pubDate>Tue, 03 May 2022 15:07:55 +0800</pubDate>
+      
+      <guid>http://www.adhysetiawan.com/about/</guid>
+      <description>Hi there, my name is Adhy! 👋
+I am a computer enthusiast who love building and breaking stuff related to computers 💻 Currently I am an Information Security senior at the National University of Singapore 🐯
+Interest My main interest lies in the low-level details 🔧 of modern computer systems. I am interested in the design of operating systems and the architecture of the world-wide web. Lately, I am interested to dive into the field of digital forensics and malware research 🔍 which will be the topic of my Final Year Project in NUS.</description>
+    </item>
+    
+    <item>
       <title>WiFi craking - WPA2 Personal</title>
       <link>http://www.adhysetiawan.com/posts/wifi-cracking/</link>
       <pubDate>Mon, 21 Mar 2022 00:00:00 +0000</pubDate>
