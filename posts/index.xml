@@ -6,7 +6,19 @@
     <description>Recent content in Posts on Adhy Setiawan</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Tue, 01 Nov 2022 16:42:36 +0800</lastBuildDate><atom:link href="http://www.adhysetiawan.com/posts/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 09 Dec 2022 14:22:26 +0800</lastBuildDate><atom:link href="http://www.adhysetiawan.com/posts/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Containers</title>
+      <link>http://www.adhysetiawan.com/posts/containers/</link>
+      <pubDate>Fri, 09 Dec 2022 14:22:26 +0800</pubDate>
+      
+      <guid>http://www.adhysetiawan.com/posts/containers/</guid>
+      <description>Disclaimer: This is just my note for a talk &amp;ldquo;An Introduction to Container Hacking&amp;rdquo; by Rory McCune (Aqua Security)
+Containers Containerisation is the process of packaging an application and the necessary resources (such as libraries and packages) required into one package.
+The motivation behind containers is due to the myriad dependencies found in modern applications. These dependencies can:
+be difficult to install create difficulty for devs to diagnose and replicate faults conflict with each other (e.</description>
+    </item>
+    
     <item>
       <title>BTW I use Arch</title>
       <link>http://www.adhysetiawan.com/posts/arch/</link>
@@ -18,6 +30,17 @@
 Verify the key
 gpg --keyserver-options auto-key-retrieve --verify archlinux-x86_64.iso.sig Confirm that the key fingerprint is shown at the the Developer page of arch.
 1.2. Create media Insert USB Get the USB device name from</description>
+    </item>
+    
+    <item>
+      <title>Playing with SSH config</title>
+      <link>http://www.adhysetiawan.com/posts/ssh-config/</link>
+      <pubDate>Tue, 30 Aug 2022 11:11:46 +0800</pubDate>
+      
+      <guid>http://www.adhysetiawan.com/posts/ssh-config/</guid>
+      <description>Motivation When I was taking Parallel Computing course in NUS, I had to ssh to the school&amp;rsquo;s server to do my work. The server is located on the school&amp;rsquo;s private network, so I had to use a jump host to connect to the server.
+ssh username@soctf-pdc-001.comp.nus.edu.sg -J username@student.comp.nus.edu.sg The command was super long, so I created a ssh config file:
+Host student User username Hostname student.comp.nus.edu.sg ForwardAgent yes Forward X11 yes Host parallel User username Hostname soctf-pdc-001.</description>
     </item>
     
     <item>

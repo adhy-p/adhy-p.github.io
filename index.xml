@@ -6,7 +6,19 @@
     <description>Recent content on Adhy Setiawan</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Tue, 01 Nov 2022 16:42:36 +0800</lastBuildDate><atom:link href="http://www.adhysetiawan.com/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 09 Dec 2022 14:22:26 +0800</lastBuildDate><atom:link href="http://www.adhysetiawan.com/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Containers</title>
+      <link>http://www.adhysetiawan.com/posts/containers/</link>
+      <pubDate>Fri, 09 Dec 2022 14:22:26 +0800</pubDate>
+      
+      <guid>http://www.adhysetiawan.com/posts/containers/</guid>
+      <description>Disclaimer: This is just my note for a talk &amp;ldquo;An Introduction to Container Hacking&amp;rdquo; by Rory McCune (Aqua Security)
+Containers Containerisation is the process of packaging an application and the necessary resources (such as libraries and packages) required into one package.
+The motivation behind containers is due to the myriad dependencies found in modern applications. These dependencies can:
+be difficult to install create difficulty for devs to diagnose and replicate faults conflict with each other (e.</description>
+    </item>
+    
     <item>
       <title>BTW I use Arch</title>
       <link>http://www.adhysetiawan.com/posts/arch/</link>
@@ -21,6 +33,17 @@ gpg --keyserver-options auto-key-retrieve --verify archlinux-x86_64.iso.sig Conf
     </item>
     
     <item>
+      <title>Playing with SSH config</title>
+      <link>http://www.adhysetiawan.com/posts/ssh-config/</link>
+      <pubDate>Tue, 30 Aug 2022 11:11:46 +0800</pubDate>
+      
+      <guid>http://www.adhysetiawan.com/posts/ssh-config/</guid>
+      <description>Motivation When I was taking Parallel Computing course in NUS, I had to ssh to the school&amp;rsquo;s server to do my work. The server is located on the school&amp;rsquo;s private network, so I had to use a jump host to connect to the server.
+ssh username@soctf-pdc-001.comp.nus.edu.sg -J username@student.comp.nus.edu.sg The command was super long, so I created a ssh config file:
+Host student User username Hostname student.comp.nus.edu.sg ForwardAgent yes Forward X11 yes Host parallel User username Hostname soctf-pdc-001.</description>
+    </item>
+    
+    <item>
       <title>About</title>
       <link>http://www.adhysetiawan.com/about/</link>
       <pubDate>Tue, 03 May 2022 15:07:55 +0800</pubDate>
@@ -28,7 +51,7 @@ gpg --keyserver-options auto-key-retrieve --verify archlinux-x86_64.iso.sig Conf
       <guid>http://www.adhysetiawan.com/about/</guid>
       <description>Hi there, my name is Adhy! 👋
 I am a computer enthusiast who love building and breaking stuff related to computers 💻 Currently I am an Information Security senior at the National University of Singapore 🐯
-Interest My main interest lies in the low-level details 🔧 of modern computer systems. I am interested in the design of operating systems and the architecture of the world-wide web. Lately, I am interested to dive into the field of digital forensics and malware research 🔍 which will be the topic of my Final Year Project in NUS.</description>
+About This Page The main purpose of this page is to cache the things I learned, so I can access them more easily. However, if you find the content interesting and useful, then it&amp;rsquo;s a win for me as well ✌️</description>
     </item>
     
     <item>
