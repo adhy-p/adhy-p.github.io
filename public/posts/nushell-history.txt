@@ -1,0 +1,206 @@
+ls
+cd
+ls
+pwd
+clear
+ls
+ls -al
+ls
+ls -al
+pacman -S xorg-server xorg-xinit xterm awesome
+vim .xinitrc
+ls
+clear
+ls
+ls -al
+pacman -S firefox neofetch
+firefox
+vim .xinitrc
+cd .config/
+ls
+mkdir awesome
+cp /etc/xdg/awesome/rc.lua awesome/
+cd awesome/
+pacman -S alacrity
+pacman -S alacritty
+pacman -S mlocate
+pacman -S polybar
+polybar
+ls
+vim rc.lua
+ls
+cd ..
+ls
+mkdir polybar
+cp /etc/polybar/config.ini polybar/
+cd polybar/
+ls
+vim config.ini
+vim launch.sh
+firefox
+clear
+ls
+cat launch.sh
+cd ..
+ls
+cd awesome/
+vim autorun.sh
+chmod +x autorun.sh
+run polybar
+cat autorun.sh
+which polybar
+run /usr/bin/polybar
+clear
+firefox
+reboot
+os-prober
+pacman -S os-prober
+os-prober 
+update-grub
+update
+man update
+vim /etc/default/grub
+os-prober
+grub-mkconfig -o /boot/grub/grub.cfg
+start
+firefox
+neofecth
+neofetch
+reboot
+firefox
+clear
+firefox&
+polybar
+polybar &
+startx
+ls
+pacman -Syu
+alacritty
+cd Downloads/
+ls
+unzip Hack.zip
+man zip
+pacman -S unzip
+unzip Hack.zip
+ls
+vim readme.md
+ls
+rm *
+clear
+ls
+unzip Hack-v3.003-ttf.zip
+ls
+cd ttf/
+ls
+cd ..
+mv ttf/* /usr/share/fonts/
+ls
+rm -rf ttf/
+ls
+fc-cache -f -v
+fc-list 
+64;1;2;6;9;15;16;17;18;21;22;28c64;1;2;6;9;15;16;17;18;21;22;28c64;1;2;6;9;15;16;17;18;21;22;28c64;1;2;6;9;15;16;17;18;21;22;28c64;1;2;6;9;15;16;17;18;21;22;28c64;1;2;6;9;15;16;17;18;21;22;28c
+clear
+ls
+fc-list | grep Hack
+fontconfig
+xset q
+zsh
+bash
+alacritty 
+cd /usr/share/fonts/
+ls
+mkdir hack
+mv Hack-* hack/
+ls
+cd gnu-free/
+ls
+cd ..
+ls
+cd adobe-source-code-pro/
+ls
+cd ..
+ls
+cd hack/
+ls
+cd ..
+ls
+cd ..
+ls
+cd fontconfig/
+ls
+vim conf.default/
+ls
+cd conf.default/
+ls
+clear
+cd ~/.config
+ls
+mkdir fontconfig
+cd fontconfig/
+ls
+vim fonts.conf
+vim 50-user.conf
+vim 49-sansserif.conf
+vim 90-synthetic.conf
+vim 49-sansserif.conf
+cd ..
+ls
+cd conf.avail/
+ls
+fc-list
+fc-list | grep Hack
+id
+ls
+cd Downloads/
+ls
+cd ..
+ls
+neofetch
+cd .config/
+ls
+polybar
+ls
+cd polybar/
+ls
+vim config.ini
+cd ..
+ls
+cd awesome/
+ls
+vim rc.lua
+ls
+vim autorun.sh
+cd ..
+ls
+cd nushell/
+ls
+vim config.nu
+vim env.nu
+clear
+ls
+history
+alacritty 
+history
+chsh -l
+zsh
+which zsh
+cat /etc/shells
+shells
+cd /bin
+ls
+ls | grep zsh
+chsh -s bash
+chsh -l
+chsh -s /bin/bash
+pacman -S zsh
+zsh
+chsh -l
+which zsh
+chsh -s /usr/bin/zsh
+ls
+ls -al
+vim .zprofile
+firefox
+ls
+sh
