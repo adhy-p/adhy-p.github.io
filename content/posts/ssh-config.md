@@ -35,7 +35,7 @@ Now I can just type this to connect to the server:
 ```
 ssh parallel
 ```
-A major part of the course was to benchmark our parallel programs using different computer hardware. Therefore, I had ssh to multiple different servers. My ssh config file became really ugly, because I had to create a new entry for each server.
+A big part of the course was to benchmark the parallel programs and compare it to the standard, sequential implementation. We had to experiment using different number of cores, and sometimes using different clockspeed. In other words, the programs had to be benchmarked using different hardwares. Since I need to ssh to multiple servers to do the benchmarking, I need to create a new entry for each server in my ssh config file. Soon enough, my ssh config file became really cluttered and ugly:
 
 ```
 ... more entries ...
@@ -75,18 +75,7 @@ PATTERNS
 
            Host 192.168.0.?
 
-     A pattern-list is a comma-separated list of patterns.  Patterns within pattern-lists may be negated by preceding them with an exclamation mark (‘!’).  For example, to allow a key to be used from anywhere within an organization
-     except from the "dialup" pool, the following entry (in authorized_keys) could be used:
-
-           from="!*.dialup.example.com,*.example.com"
-
-     Note that a negated match will never produce a positive result by itself.  For example, attempting to match "host3" against the following pattern-list will fail:
-
-           from="!host1,!host2"
-
-     The solution here is to include a term that will yield a positive match, such as a wildcard:
-
-           from="!host1,!host2,*"
+... more entries ...
 
 TOKENS
      Arguments to some keywords can make use of tokens, which are expanded at runtime:
@@ -127,14 +116,16 @@ Host soctf-pdc-*
     Hostname %h
     ProxyJump student
 ```
-Now, I can type the following to connect to the servers:
+
+By utilizing `*` pattern, the configuration (`User`, `Hostname`, and `ProxyJump`) will be applied to the current connection if the hostname starts with `soctf-pdc-`. Since we want to connect to the host we specify when we type `ssh HOST`, the `%h` token is used in the `Hostname` field.
+Now, we type the following to connect to the servers:
 ```
 ssh soctf-pdc-001.comp.nus.edu.sg # to connect to the first server
 ssh soctf-pdc-002.comp.nus.edu.sg # to connect to the second server
 ...
 ssh soctf-pdc-024.comp.nus.edu.sg # to connect to the last server
 ```
-Since the `soctf-pdc-*` servers and the `student` server are in the same network, we can omit the domain name.
+Since the `soctf-pdc-*` servers and the `student` server are in the same network, we can even omit the domain name.
 ```
 ssh soctf-pdc-001
 ssh soctf-pdc-002
@@ -169,7 +160,7 @@ Host soctf-*
     Hostname soctf-pdc-`echo %h | cut -d'-' -f2`
     ProxyJump student
 ```
-Well, no:
+Well, unfortunately it doesn't:
 ```
 adhy:~$ ssh soctf-001
 /home/adhy/.ssh/config line 39: keyword hostname extra arguments at end of line
@@ -251,3 +242,8 @@ username@soctf-pdc-001:~$
 ```
 
 Nice!
+
+## Conclusion
+In this post, we explored how to use combinations of pattern, token, and ProxyCommand to easily connect to multiple hosts. While it might be better for us to type the whole hostname `soctf-pdc-*` and use the `%h` token directly (first attempt), we now know that we can do with `ProxyCommand` and this knowledge might be useful in the future when we are dealing with more servers with more complex hostnames.
+
+Last updated: May 2023
