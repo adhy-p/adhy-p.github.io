@@ -1,6 +1,6 @@
 +++ 
 date = 2022-03-21
-title = "WiFi craking - WPA2 Personal"
+title = "WiFi cracking - WPA2 Personal"
 description = "How to crack WPA2-PSK using hashcat"
 slug = ""
 authors = []
@@ -109,7 +109,7 @@ Some notes on GTK:
 
 ### MIC
 
-This is the achilles heel of WPA2; we shall use the value of MIC to get the passphrase candidates. First, we observe how MIC is derived:
+This is the Achilles's heel of WPA2; we shall use the value of MIC to get the passphrase candidates. First, we observe how MIC is derived:
 
 ```
 MIC = HMAC-MD5(KCK, EAPoL data)    # WPA1
@@ -235,7 +235,7 @@ Example:
 WPA*02*3847cec66523043ac915521085d9ecec*302303c5eeb3*94659c310204*6c696e6b737973322e3447487a*b1ad763b12e9529081592ec69b43538cd4c2650f8e5761591e65349279cfed68*0103007702010a000000000000000000014668fef7d68df98ac78c2bc1ea480cc029b16e4d1a64f5027b42819f3990a47e000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001830160100000fac040100000fac040100000fac023c000000*02
 ```
 
-See the following /images/wifi-crackingure to see the comparison between the capture file and the output of hcxpcapng:
+See the following image to see the comparison between the capture file and the output of hcxpcapng:
 
 ![wpa-hash](/images/wifi-cracking/WPA-HASH.jpg)
 
@@ -243,11 +243,11 @@ Refer to [hashcat documentation](https://hashcat.net/wiki/doku.php?id=cracking_w
 
 ### Heuristics
 
-All in all, this attack boils down to conventional offline password attack. Thus, given a strong password, it is practically impossible to retrieve the passphrase. Brute force is obviously not an option, and therefore we usually go with dictionary attacks. Dictionary attack really depends on the wordlist used. To increase the probability of getting the key, the following password cracking heuristics can be used to generate
+All in all, this attack boils down to conventional offline password attack. Thus, given a strong password, it is practically impossible to retrieve the passphrase. Brute force is obviously not an option, and therefore we usually go with dictionary attacks. Dictionary attack really depends on the word list used. To increase the probability of getting the key, the following password cracking heuristics can be used to generate
 
 - l33t substitution
 - prince attack https://github.com/hashcat/princeprocessor
-- wordlist drawn from victim's website https://github.com/digininja/CeWL
+- word list drawn from victim's website https://github.com/digininja/CeWL
 - toggle upper n lower case https://github.com/hashcat/hashcat/blob/master/rules/toggles5.rule
 - combine words from dictionaries https://hashcat.net/wiki/doku.php?id=combinator_attack
 - add character before/inside/after the word https://hashcat.net/wiki/doku.php?id=maskprocessor

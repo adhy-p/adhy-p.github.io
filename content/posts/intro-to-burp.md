@@ -73,7 +73,7 @@ Note:
 
 > Burp Repeater is a simple tool for manually manipulating and reissuing individual HTTP and WebSocket messages, and analyzing the application's responses. You can use Repeater for all kinds of purposes, such as changing parameter values to test for input-based vulnerabilities, issuing requests in a specific sequence to test for logic flaws, and reissuing requests from Burp Scanner issues to manually verify reported issues.
 
-To begin, turn off the intercept option from the previos section and go to https://portswigger.net/web-security/os-command-injection/lab-simple to access the lab. Note that even when our intercept is turned off, burp will still record all HTTP requests it forwarded.
+To begin, turn off the intercept option from the previous section and go to https://portswigger.net/web-security/os-command-injection/lab-simple to access the lab. Note that even when our intercept is turned off, burp will still record all HTTP requests it forwarded.
 
 According to the lab description, the application contains an OS command injection vulnerability in the product stock checker. Let's try to see a product and check its stock:
 
@@ -125,7 +125,7 @@ First, go to `Positions` tab and clear all markers. Then, add a marker on the `u
 
 ![add-marker](/images/intro-to-burp/add-marker.png)
 
-Next, go to the `Payload` tab and paste the wordlist from the lab website.
+Next, go to the `Payload` tab and paste the word list from the lab website.
 
 ![paste-usernames](/images/intro-to-burp/paste-usernames.png)
 
@@ -147,7 +147,7 @@ Then, from our HTTP history tab, instead of sending the packet to intruder, we s
 
 ![send-to-turbo](/images/intro-to-burp/send-to-turbo.png)
 
-Turbo intruder uses python, so you can really customize your own code if you understand Python's syntax. We save the wordlist from the lab website locally, and then we put a format string specifier `%s` to indicate the string we want to change.
+Turbo intruder uses python, so you can really customize your own code if you understand Python's syntax. We save the word list from the lab website locally, and then we put a format string specifier `%s` to indicate the string we want to change.
 
 ![turbo-python](/images/intro-to-burp/turbo-python.png)
 

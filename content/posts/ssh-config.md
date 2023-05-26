@@ -35,7 +35,7 @@ Now I can just type this to connect to the server:
 ```
 ssh parallel
 ```
-A big part of the course was to benchmark the parallel programs and compare it to the standard, sequential implementation. We had to experiment using different number of cores, and sometimes using different clockspeed. In other words, the programs had to be benchmarked using different hardwares. Since I need to ssh to multiple servers to do the benchmarking, I need to create a new entry for each server in my ssh config file. Soon enough, my ssh config file became really cluttered and ugly:
+A big part of the course was to benchmark the parallel programs and compare it to the standard, sequential implementation. We had to experiment using different number of cores, and sometimes using different clock speed. In other words, the programs had to be benchmarked using different hardwares. Since I need to ssh to multiple servers to do the benchmarking, I need to create a new entry for each server in my ssh config file. Soon enough, my ssh config file became really cluttered and ugly:
 
 ```
 ... more entries ...

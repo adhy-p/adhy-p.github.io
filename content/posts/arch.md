@@ -51,7 +51,7 @@ After we have our Arch image ready, we need to prepare an empty USB to be used a
 
 After inserting the USB to the computer, we can get the USB device name by invoking `lsblk`.
 
-After we get the device name, we simply copy the image to the usb. This can be done by either `cat` or `dd`.
+After we get the device name, we simply copy the image to the USB. This can be done by either `cat` or `dd`.
 ```
 ubuntu$ sudo -i
 
@@ -122,7 +122,7 @@ After that, we need to partition the disks. You can create as many partitions yo
 
 I used `fdisk` to create the partitions, but other tools such as `parted` can be used as well. I allocated 8GB of swap space and allocated the rest of the disk for the root partition. 
 
-> Note: If you are not familiar, the swap space is a location in your disk that can be used as memory (additional RAM, free real estate!). However, it is very very slow and will only be used when your RAM is full. In other words, if you are seeing that your swap space is contantly being used, maybe it is a good time to upgrade your RAM.
+> Note: If you are not familiar, the swap space is a location in your disk that can be used as memory (additional RAM, free real estate!). However, it is very very slow and will only be used when your RAM is full. In other words, if you are seeing that your swap space is constantly being used, maybe it is a good time to upgrade your RAM.
 
 ```
 root# lsblk
@@ -158,8 +158,8 @@ Command (m for help): v
 Command (m for help): w
 ```
 
-### 4.4. Format the parititions
-After we have formatted the disks, we need to create a filesystem. We use `mkfs` to create the filesystem of our root storage and `mkswap` to initialise our swap partition.
+### 4.4. Format the partitions
+After we have formatted the disks, we need to create a file system. We use `mkfs` to create the file system of our root storage and `mkswap` to initialize our swap partition.
 
 I used `ext4` which is the standard for Linux, but other formats (e.g. `XFS`) can be used as well.
 ```
@@ -194,7 +194,7 @@ root# pacstrap -K /mnt base linux linux-firmware networkmanager \
     vim man-db man-pages texinfo grub efibootmgr
 ```
 
-At this point, Arch and its related packages are already installed on the disk. However, the disks is not permanently mounted yet during bootup. We need to create `/etc/fstab` file to tell the OS which disks should be mounted persistently. We can create the `fstab` file manually, but in this case we will simply use the `genfstab` command.
+At this point, Arch and its related packages are already installed on the disk. However, the disks is not permanently mounted yet during boot up. We need to create `/etc/fstab` file to tell the OS which disks should be mounted persistently. We can create the `fstab` file manually, but in this case we will simply use the `genfstab` command.
 ```
 root# genfstab -U /mnt >> /mnt/etc/fstab
 ```
@@ -224,7 +224,7 @@ root# passwd  # set up root password
 ```
 
 # 3. Setup boot loader
-At this point, the OS is already installed and ready to use. However, our machine doen't know how to load and run the OS. We need to configure (or in this case, install) bootloader to load the run Linux when the computer is powered on. I'm not sure whether the default Windows bootloader supports Linux, but just to be safe, we shall install GRUB.
+At this point, the OS is already installed and ready to use. However, our machine doesn't know how to load and run the OS. We need to configure (or in this case, install) boot loader to load the run Linux when the computer is powered on. I'm not sure whether the default Windows boot loader supports Linux, but just to be safe, we shall install GRUB.
 ```
 root# pacman -S grub efibootmgr os-prober
 root# grub-install --target=x86_64-efi \
@@ -296,7 +296,7 @@ thinkpad# pacman -S xorg-server xorg-xinit xterm awesome
 ```
 
 ### 3.1. Start awesome on login:
-We have a window manager, but everytime we restart our system, we need to manually start the X11 server. There must be a way to automate this process.
+We have a window manager, but every time we restart our system, we need to manually start the X11 server. There must be a way to automate this process.
 
 ```
 thinkpad# vim .xinitrc
@@ -312,14 +312,14 @@ if [ -z "${DISPLAY}" ] && [ "${XDG_VTNR}" -eq 1 ]; then
 fi
 ```
 
-### 3.2. Customise awesome
+### 3.2. Customize awesome
 
 At this point, we have a window manager, but it's not the most aesthetically pleasing. I tried to configure the settings by myself, but in the end I followed the instructions from [awesome-copycats](https://github.com/lcpz/awesome-copycats).
 
 Having installed a window manager, we can now surf the web and do some productive work. However, there are still lots of things that we can do as our system is still far from being usable and secure. We can set a non-root user account, configure power management, change font and display, and the list goes on. Putting everything in this post might not be the best idea, so let's wrap up here.
 
 # Closing remarks
-When I first started using Arch, I tried to not install a desktop environment and setup everything by myself. I started by installing a window manager (awesome-wm), but then I realised that you can't still do much with this. The audio doesn't work, the screen brightness is fixed, you need to manually detect and switch to external monitor, and the list goes on.
+When I first started using Arch, I tried to not install a desktop environment and setup everything by myself. I started by installing a window manager (awesome-wm), but then I realized that you can't still do much with this. The audio doesn't work, the screen brightness is fixed, you need to manually detect and switch to external monitor, and the list goes on.
 
 I learnt a lot in the process of configuring the system. I learnt how to configure the audio driver and added some macros to increase/decrease volume by using keyboard function keys. I learnt about special files that can be written to change screen brightness, as well as how to detect and use external screen using the command line. 
 Most importantly, I learnt to appreciate the complexities that is abstracted out by modern operating systems and the effort put by the developers to make modern computers as user-friendly as possible.

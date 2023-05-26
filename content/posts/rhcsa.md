@@ -123,7 +123,7 @@ These are the points that will be tested during RHCSA exam:
 ## 2.2 Exam Format
 You can take the exam either remotely or physically on Red Hat's testing center. However, even if you choose to go to the testing center, the actual exam itself will still be done remotely. The only difference is you don't have to setup the environment (i.e. create a live USB to access the exam environment, prepare an external web camera for proctoring). 
 
-You will be given a set of virtual machines for you to configure. For the grading, Red Hat will use automated scripts to check if the configuration done on these machines match with the requirements and give you the appropriate marks. Do note that all configurations must persist accross reboots without manual intervention.
+You will be given a set of virtual machines for you to configure. For the grading, Red Hat will use automated scripts to check if the configuration done on these machines match with the requirements and give you the appropriate marks. Do note that all configurations must persist across reboots without manual intervention.
 
 There are 2 (two) servers that you need to configure. On each server, there will be a set of tasks that you need to do. 
 
@@ -179,7 +179,7 @@ Then, we can start to set the new root password:
 sh# passwd
 ```
 
-Finally, we configure the system to automatically perform full SELinux relabelingby running:
+Finally, we configure the system to automatically perform full SELinux relabeling by running:
 ```
 sh# touch /.autorelabel
 ```
@@ -378,7 +378,7 @@ Suppose we are tasked to perform the following tasks:
     - Allow the password to change after 10 days since the day of last password change.
     - Set the password expiration to 30 days since the day of last password change.
 - For user `bob`: 
-    - The user musut change his password upon next login
+    - The user must change his password upon next login
     - Must be able to run any commands as a superuser
     - Set the default umask as 007
 - For user `eve`: 
@@ -406,7 +406,7 @@ eve:xx:1001:1001::/home/eve:/sbin/nologin  # change the shell to /sbin/nologin
 ```
 
 #### Remarks
-For this scenario, you only need to remember the related commands: `useradd`, `groupadd`, `chage`. The man page of these commands will tell you the list of configuration files (e.g. `/etc/passwd`, `/etc/login.defs`) that can be used to change the behaviour of the program.  For the purpose of the exam, remembering which location to edit the sudoers configuration `/etc/sudoers.d` is also useful. 
+For this scenario, you only need to remember the related commands: `useradd`, `groupadd`, `chage`. The man page of these commands will tell you the list of configuration files (e.g. `/etc/passwd`, `/etc/login.defs`) that can be used to change the behavior of the program.  For the purpose of the exam, remembering which location to edit the sudoers configuration `/etc/sudoers.d` is also useful. 
 
 ```
 root@servera# man useradd
@@ -523,7 +523,7 @@ This one is pretty standard, you can always refer the manual page if you forget 
 
 ## 3.9. Tune System Performance
 #### Scenario
- Find the recommended tuning profile and tune our system accoring to that tuning profile. 
+ Find the recommended tuning profile and tune our system according to that tuning profile. 
 
 #### Solution
 ```
@@ -624,7 +624,7 @@ UUID=... swap swap defaults 0 0
 ```
 
 #### Remarks
-Similar to `nmcli`, I personally prefer to use the interactive mode of `parted` so that I don't have to remember the fields/parameter for each command. When configuring the storage stack, be careful with the units (MB vs MiB, GB vs GiB) since Red Hat uses automated scripts to validate the size. While there is a range of accceptable value, (e.g. when they ask for 700MiB, they will accept anything from 600MiB - 800MiB, something like that) you should always be careful with the units.
+Similar to `nmcli`, I personally prefer to use the interactive mode of `parted` so that I don't have to remember the fields/parameter for each command. When configuring the storage stack, be careful with the units (MB vs MiB, GB vs GiB) since Red Hat uses automated scripts to validate the size. While there is a range of acceptable value, (e.g. when they ask for 700MiB, they will accept anything from 600MiB - 800MiB, something like that) you should always be careful with the units.
 
 For each LVM-related command (`pvcreate`, `vgcreate`, `lvcreate`, `vgextend`, `lvextend`), you can find the example in the manual page. You only need to remember the hierarchy of the storage stack (physical block devices > physical volume > volume group > logical volume) and you should be good to go.
 
@@ -903,7 +903,7 @@ To check your configuration, you can simply eyeball the configuration files, or 
 
 **Tips #2**: I recommend you resizing your tabs such that your instruction screen and your VM console are visible in one screen. This is so that you can easily navigate between them by clicking on the tab directly. The exam environment was a bit laggy and hard to navigate (`Alt+Tab` doesn't work).  At first, I need to go to the "Activity" tab on the top left to see all the tabs, and select the correct one.
 
-Still on accessiblity, you might want to store all the relevant information (root password, URL of the yum repo, URL of the container registry) on a text file on one of the hosts so that you can easily retrieve them without having to go to the very first instruction page.
+Still on accessibility, you might want to store all the relevant information (root password, URL of the yum repo, URL of the container registry) on a text file on one of the hosts so that you can easily retrieve them without having to go to the very first instruction page.
 
 **Tips #3**: Know how to read and find information on the go instead of memorizing everything. As you can see in various scenarios I covered above, I repeatedly used the `apropos` command, together with **SEE ALSO** and **EXAMPLES** section of the man pages. You might also want to remember the default configuration files which contains the syntax you might need (e.g. the default `/etc/crontab` file contains the syntax of cron jobs; I find it faster to read that file instead of reading through the man page of `cron`).
 
