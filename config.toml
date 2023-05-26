@@ -134,3 +134,7 @@ url = "posts/"
 # name = "Projects"
 # weight = 3
 # url = "projects/"
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true
