@@ -9,7 +9,7 @@ draft: true
 Hi there, my name is Adhy! :wave:
 
 I am a computer enthusiast who love building and breaking stuff related to computers :computer:
-Currently I am an Information Security senior at the National University of Singapore :tiger:
+Currently, I am a Full Time Teaching Assistant at the National University of Singapore :tiger:
 
 ## About This Page
 
@@ -20,22 +20,28 @@ The main purpose of this page is to cache the things I learned, so I can access 
 ## My Interest
 
 ---
+I am a [systems](https://en.wikipedia.org/wiki/Systems_programming) person who really enjoy learning about operating systems and computer networks. Also, when it comes to computers, there are two things that I really like: automating stuffs and seeing things go blazingly fast. I find it really satisfying when my bash/python scripts does everything I wanted in a single command. I also find joy in doing benchmarking and optimization.
 
-My main interest lies in the low-level details :wrench: of modern computer systems. I am interested in the design of operating systems and the architecture of the world-wide web. Lately, I am interested to dive into the field of digital forensics and malware research :mag: which will be the topic of my Final Year Project in NUS.
-
-In my free time, I occasionally play badminton and Dota 2 with my friends. I also like to swim :swimmer: and play guitar :guitar:.
+In my free time, I occasionally play badminton and Dota 2 with my friends. I also like to swim :swimmer: and play guitar :guitar:
 
 ## My Experiences
 
 ---
+**Full Time Teaching Assistant, NUS** :mortar_board:
 
-**Information Security Intern, TRS Forensics**
+Singapore, Jul 2023 - Present
+
+I am currently teaching CS2030S, an introductory module for first and second year students who are keen to write clean, extensible, and maintainable code. The first half of the module covers basic OOP concepts such as encapsulation, abstraction, inheritance, and polymorphism. The second half gives an introduction to immutability and functional programming, as well as other interesting CS concepts such as lazy evaluation, asynchronous programming, and task deque and work-stealing.
+
+When I am not teaching, I like to sit in on interesting courses in NUS which I had missed during my undergraduate. Currently, I am attending classes about compilers, distributed databases, and computer systems performance analysis.
+
+**Information Security Intern, TRS Forensics** :detective:
 
 Singapore, Dec 2021 - May 2022
 
 In TRS, I was part of its forensics and cybersecurity department. I started with the forensics department, where I went to the client's office to perform exhibit management and image acquisition using state-of-the-art digital forensics tool. I also learnt how to perform the analysis on the captured image file. Next, on the cybersecurity department, I was assigned to attack a virtual box and perform bug bounty for my on-the-job training. Then, I was involved in real pentesting with a client. I mostly dealt with web and API pentesting, but I was also exposed a little bit to Android pentesting. I helped the team to perform research on WiFi cracking, and developed two internal tools for penetration testing and data visualisation.
 
-**Cybersecurity Intern, Envision Digital International**
+**Cybersecurity Intern, Envision Digital International** :battery:
 
 Singapore, Jun 2021 - Sep 2021
 
