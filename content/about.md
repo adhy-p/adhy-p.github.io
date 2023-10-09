@@ -20,7 +20,7 @@ The main purpose of this page is to cache the things I learned, so I can access 
 ## My Interest
 
 ---
-I am a [systems](https://en.wikipedia.org/wiki/Systems_programming) person who really enjoy learning about operating systems and computer networks. Also, when it comes to computers, there are two things that I really like: automating stuffs and seeing things go blazingly fast. I find it really satisfying when my bash/python scripts does everything I wanted in a single command. I also find joy in doing benchmarking and optimization.
+I am a [systems](https://en.wikipedia.org/wiki/Systems_programming) person who really enjoy learning about operating systems and computer networks. When it comes to computers, there are two things that I really like: automating stuffs and seeing things go blazingly fast. I find it really satisfying when my bash/python scripts does everything I wanted in a single command. I also find joy in doing benchmarking and optimization.
 
 In my free time, I occasionally play badminton and Dota 2 with my friends. I also like to swim :swimmer: and play guitar :guitar:
 
@@ -32,6 +32,8 @@ In my free time, I occasionally play badminton and Dota 2 with my friends. I als
 Singapore, Jul 2023 - Present
 
 I am currently teaching CS2030S, an introductory module for first and second year students who are keen to write clean, extensible, and maintainable code. The first half of the module covers basic OOP concepts such as encapsulation, abstraction, inheritance, and polymorphism. The second half gives an introduction to immutability and functional programming, as well as other interesting CS concepts such as lazy evaluation, asynchronous programming, and task deque and work-stealing.
+
+I am also teaching CS5231, a graduate level module on systems security. I mainly help with the assignment grading which focuses on binary exploitation (buffer overflow, return oriented programming) and kernel observability (Linux Security Modules, eBPF).
 
 When I am not teaching, I like to sit in on interesting courses in NUS which I had missed during my undergraduate. Currently, I am attending classes about compilers, distributed databases, and computer systems performance analysis.
 
