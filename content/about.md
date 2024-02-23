@@ -31,11 +31,11 @@ In my free time, I occasionally play badminton and Dota 2 with my friends. I als
 
 Singapore, Jul 2023 - Present
 
-I am currently teaching CS2030S, an introductory module for first and second year students who are keen to write clean, extensible, and maintainable code. The first half of the module covers basic OOP concepts such as encapsulation, abstraction, inheritance, and polymorphism. The second half gives an introduction to immutability and functional programming, as well as other interesting CS concepts such as lazy evaluation, asynchronous programming, and task deque and work-stealing.
+I am currently teaching CS2040, an introductory module about data structures and algorithms. I talk about numerous data structures (e.g. Hash Tables, Heap, BST, DSU) and algorithms (e.g. Quick Select, Kruskal's and Prim's, Floyd-Warshall, Dijkstra), which are crucial to write efficient and performant software.
 
-I am also teaching CS5231, a graduate level module on systems security. I mainly help with the assignment grading which focuses on binary exploitation (buffer overflow, return oriented programming) and kernel observability (Linux Security Modules, eBPF).
+Prior to this, I was busy preaching about writing clean, extensible, and maintainable code in CS2030S. The first half of the module covers basic OOP concepts such as encapsulation, abstraction, inheritance, and polymorphism. The second half gives an introduction to immutability and functional programming, as well as other interesting CS concepts such as lazy evaluation, asynchronous programming, and task deque and work-stealing.
 
-When I am not teaching, I like to sit in on interesting courses in NUS which I had missed during my undergraduate. Currently, I am attending classes about compilers, distributed databases, and computer systems performance analysis.
+I also taught CS5231, a graduate level module on systems security. I mainly help with the assignment grading which focuses on binary exploitation (buffer overflow, return oriented programming) and kernel observability (Linux Security Modules, eBPF).
 
 **Information Security Intern, TRS Forensics** :detective:
 

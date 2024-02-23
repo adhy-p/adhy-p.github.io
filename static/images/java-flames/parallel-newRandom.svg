@@ -1,0 +1,973 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" width="1200" height="662" onload="init(evt)" viewBox="0 0 1200 662" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<!-- Flame graph stack visualization. See https://github.com/brendangregg/FlameGraph for latest version, and http://www.brendangregg.com/flamegraphs.html for examples. -->
+<!-- NOTES:  -->
+<defs>
+	<linearGradient id="background" y1="0" y2="1" x1="0" x2="0" >
+		<stop stop-color="#eeeeee" offset="5%" />
+		<stop stop-color="#eeeeb0" offset="95%" />
+	</linearGradient>
+</defs>
+<style type="text/css">
+	text { font-family:Verdana; font-size:12px; fill:rgb(0,0,0); }
+	#search, #ignorecase { opacity:0.1; cursor:pointer; }
+	#search:hover, #search.show, #ignorecase:hover, #ignorecase.show { opacity:1; }
+	#subtitle { text-anchor:middle; font-color:rgb(160,160,160); }
+	#title { text-anchor:middle; font-size:17px}
+	#unzoom { cursor:pointer; }
+	#frames > *:hover { stroke:black; stroke-width:0.5; cursor:pointer; }
+	.hide { display:none; }
+	.parent { opacity:0.5; }
+</style>
+<script type="text/ecmascript">
+<![CDATA[
+	"use strict";
+	var details, searchbtn, unzoombtn, matchedtxt, svg, searching, currentSearchTerm, ignorecase, ignorecaseBtn;
+	function init(evt) {
+		details = document.getElementById("details").firstChild;
+		searchbtn = document.getElementById("search");
+		ignorecaseBtn = document.getElementById("ignorecase");
+		unzoombtn = document.getElementById("unzoom");
+		matchedtxt = document.getElementById("matched");
+		svg = document.getElementsByTagName("svg")[0];
+		searching = 0;
+		currentSearchTerm = null;
+
+		// use GET parameters to restore a flamegraphs state.
+		var params = get_params();
+		if (params.x && params.y)
+			zoom(find_group(document.querySelector('[x="' + params.x + '"][y="' + params.y + '"]')));
+                if (params.s) search(params.s);
+	}
+
+	// event listeners
+	window.addEventListener("click", function(e) {
+		var target = find_group(e.target);
+		if (target) {
+			if (target.nodeName == "a") {
+				if (e.ctrlKey === false) return;
+				e.preventDefault();
+			}
+			if (target.classList.contains("parent")) unzoom(true);
+			zoom(target);
+			if (!document.querySelector('.parent')) {
+				// we have basically done a clearzoom so clear the url
+				var params = get_params();
+				if (params.x) delete params.x;
+				if (params.y) delete params.y;
+				history.replaceState(null, null, parse_params(params));
+				unzoombtn.classList.add("hide");
+				return;
+			}
+
+			// set parameters for zoom state
+			var el = target.querySelector("rect");
+			if (el && el.attributes && el.attributes.y && el.attributes._orig_x) {
+				var params = get_params()
+				params.x = el.attributes._orig_x.value;
+				params.y = el.attributes.y.value;
+				history.replaceState(null, null, parse_params(params));
+			}
+		}
+		else if (e.target.id == "unzoom") clearzoom();
+		else if (e.target.id == "search") search_prompt();
+		else if (e.target.id == "ignorecase") toggle_ignorecase();
+	}, false)
+
+	// mouse-over for info
+	// show
+	window.addEventListener("mouseover", function(e) {
+		var target = find_group(e.target);
+		if (target) details.nodeValue = "Function: " + g_to_text(target);
+	}, false)
+
+	// clear
+	window.addEventListener("mouseout", function(e) {
+		var target = find_group(e.target);
+		if (target) details.nodeValue = ' ';
+	}, false)
+
+	// ctrl-F for search
+	// ctrl-I to toggle case-sensitive search
+	window.addEventListener("keydown",function (e) {
+		if (e.keyCode === 114 || (e.ctrlKey && e.keyCode === 70)) {
+			e.preventDefault();
+			search_prompt();
+		}
+		else if (e.ctrlKey && e.keyCode === 73) {
+			e.preventDefault();
+			toggle_ignorecase();
+		}
+	}, false)
+
+	// functions
+	function get_params() {
+		var params = {};
+		var paramsarr = window.location.search.substr(1).split('&');
+		for (var i = 0; i < paramsarr.length; ++i) {
+			var tmp = paramsarr[i].split("=");
+			if (!tmp[0] || !tmp[1]) continue;
+			params[tmp[0]]  = decodeURIComponent(tmp[1]);
+		}
+		return params;
+	}
+	function parse_params(params) {
+		var uri = "?";
+		for (var key in params) {
+			uri += key + '=' + encodeURIComponent(params[key]) + '&';
+		}
+		if (uri.slice(-1) == "&")
+			uri = uri.substring(0, uri.length - 1);
+		if (uri == '?')
+			uri = window.location.href.split('?')[0];
+		return uri;
+	}
+	function find_child(node, selector) {
+		var children = node.querySelectorAll(selector);
+		if (children.length) return children[0];
+	}
+	function find_group(node) {
+		var parent = node.parentElement;
+		if (!parent) return;
+		if (parent.id == "frames") return node;
+		return find_group(parent);
+	}
+	function orig_save(e, attr, val) {
+		if (e.attributes["_orig_" + attr] != undefined) return;
+		if (e.attributes[attr] == undefined) return;
+		if (val == undefined) val = e.attributes[attr].value;
+		e.setAttribute("_orig_" + attr, val);
+	}
+	function orig_load(e, attr) {
+		if (e.attributes["_orig_"+attr] == undefined) return;
+		e.attributes[attr].value = e.attributes["_orig_" + attr].value;
+		e.removeAttribute("_orig_"+attr);
+	}
+	function g_to_text(e) {
+		var text = find_child(e, "title").firstChild.nodeValue;
+		return (text)
+	}
+	function g_to_func(e) {
+		var func = g_to_text(e);
+		// if there's any manipulation we want to do to the function
+		// name before it's searched, do it here before returning.
+		return (func);
+	}
+	function update_text(e) {
+		var r = find_child(e, "rect");
+		var t = find_child(e, "text");
+		var w = parseFloat(r.attributes.width.value) -3;
+		var txt = find_child(e, "title").textContent.replace(/\([^(]*\)$/,"");
+		t.attributes.x.value = parseFloat(r.attributes.x.value) + 3;
+
+		// Smaller than this size won't fit anything
+		if (w < 2 * 12 * 0.59) {
+			t.textContent = "";
+			return;
+		}
+
+		t.textContent = txt;
+		var sl = t.getSubStringLength(0, txt.length);
+		// check if only whitespace or if we can fit the entire string into width w
+		if (/^ *$/.test(txt) || sl < w)
+			return;
+
+		// this isn't perfect, but gives a good starting point
+		// and avoids calling getSubStringLength too often
+		var start = Math.floor((w/sl) * txt.length);
+		for (var x = start; x > 0; x = x-2) {
+			if (t.getSubStringLength(0, x + 2) <= w) {
+				t.textContent = txt.substring(0, x) + "..";
+				return;
+			}
+		}
+		t.textContent = "";
+	}
+
+	// zoom
+	function zoom_reset(e) {
+		if (e.attributes != undefined) {
+			orig_load(e, "x");
+			orig_load(e, "width");
+		}
+		if (e.childNodes == undefined) return;
+		for (var i = 0, c = e.childNodes; i < c.length; i++) {
+			zoom_reset(c[i]);
+		}
+	}
+	function zoom_child(e, x, ratio) {
+		if (e.attributes != undefined) {
+			if (e.attributes.x != undefined) {
+				orig_save(e, "x");
+				e.attributes.x.value = (parseFloat(e.attributes.x.value) - x - 10) * ratio + 10;
+				if (e.tagName == "text")
+					e.attributes.x.value = find_child(e.parentNode, "rect[x]").attributes.x.value + 3;
+			}
+			if (e.attributes.width != undefined) {
+				orig_save(e, "width");
+				e.attributes.width.value = parseFloat(e.attributes.width.value) * ratio;
+			}
+		}
+
+		if (e.childNodes == undefined) return;
+		for (var i = 0, c = e.childNodes; i < c.length; i++) {
+			zoom_child(c[i], x - 10, ratio);
+		}
+	}
+	function zoom_parent(e) {
+		if (e.attributes) {
+			if (e.attributes.x != undefined) {
+				orig_save(e, "x");
+				e.attributes.x.value = 10;
+			}
+			if (e.attributes.width != undefined) {
+				orig_save(e, "width");
+				e.attributes.width.value = parseInt(svg.width.baseVal.value) - (10 * 2);
+			}
+		}
+		if (e.childNodes == undefined) return;
+		for (var i = 0, c = e.childNodes; i < c.length; i++) {
+			zoom_parent(c[i]);
+		}
+	}
+	function zoom(node) {
+		var attr = find_child(node, "rect").attributes;
+		var width = parseFloat(attr.width.value);
+		var xmin = parseFloat(attr.x.value);
+		var xmax = parseFloat(xmin + width);
+		var ymin = parseFloat(attr.y.value);
+		var ratio = (svg.width.baseVal.value - 2 * 10) / width;
+
+		// XXX: Workaround for JavaScript float issues (fix me)
+		var fudge = 0.0001;
+
+		unzoombtn.classList.remove("hide");
+
+		var el = document.getElementById("frames").children;
+		for (var i = 0; i < el.length; i++) {
+			var e = el[i];
+			var a = find_child(e, "rect").attributes;
+			var ex = parseFloat(a.x.value);
+			var ew = parseFloat(a.width.value);
+			var upstack;
+			// Is it an ancestor
+			if (0 == 0) {
+				upstack = parseFloat(a.y.value) > ymin;
+			} else {
+				upstack = parseFloat(a.y.value) < ymin;
+			}
+			if (upstack) {
+				// Direct ancestor
+				if (ex <= xmin && (ex+ew+fudge) >= xmax) {
+					e.classList.add("parent");
+					zoom_parent(e);
+					update_text(e);
+				}
+				// not in current path
+				else
+					e.classList.add("hide");
+			}
+			// Children maybe
+			else {
+				// no common path
+				if (ex < xmin || ex + fudge >= xmax) {
+					e.classList.add("hide");
+				}
+				else {
+					zoom_child(e, xmin, ratio);
+					update_text(e);
+				}
+			}
+		}
+		search();
+	}
+	function unzoom(dont_update_text) {
+		unzoombtn.classList.add("hide");
+		var el = document.getElementById("frames").children;
+		for(var i = 0; i < el.length; i++) {
+			el[i].classList.remove("parent");
+			el[i].classList.remove("hide");
+			zoom_reset(el[i]);
+			if(!dont_update_text) update_text(el[i]);
+		}
+		search();
+	}
+	function clearzoom() {
+		unzoom();
+
+		// remove zoom state
+		var params = get_params();
+		if (params.x) delete params.x;
+		if (params.y) delete params.y;
+		history.replaceState(null, null, parse_params(params));
+	}
+
+	// search
+	function toggle_ignorecase() {
+		ignorecase = !ignorecase;
+		if (ignorecase) {
+			ignorecaseBtn.classList.add("show");
+		} else {
+			ignorecaseBtn.classList.remove("show");
+		}
+		reset_search();
+		search();
+	}
+	function reset_search() {
+		var el = document.querySelectorAll("#frames rect");
+		for (var i = 0; i < el.length; i++) {
+			orig_load(el[i], "fill")
+		}
+		var params = get_params();
+		delete params.s;
+		history.replaceState(null, null, parse_params(params));
+	}
+	function search_prompt() {
+		if (!searching) {
+			var term = prompt("Enter a search term (regexp " +
+			    "allowed, eg: ^ext4_)"
+			    + (ignorecase ? ", ignoring case" : "")
+			    + "\nPress Ctrl-i to toggle case sensitivity", "");
+			if (term != null) search(term);
+		} else {
+			reset_search();
+			searching = 0;
+			currentSearchTerm = null;
+			searchbtn.classList.remove("show");
+			searchbtn.firstChild.nodeValue = "Search"
+			matchedtxt.classList.add("hide");
+			matchedtxt.firstChild.nodeValue = ""
+		}
+	}
+	function search(term) {
+		if (term) currentSearchTerm = term;
+
+		var re = new RegExp(currentSearchTerm, ignorecase ? 'i' : '');
+		var el = document.getElementById("frames").children;
+		var matches = new Object();
+		var maxwidth = 0;
+		for (var i = 0; i < el.length; i++) {
+			var e = el[i];
+			var func = g_to_func(e);
+			var rect = find_child(e, "rect");
+			if (func == null || rect == null)
+				continue;
+
+			// Save max width. Only works as we have a root frame
+			var w = parseFloat(rect.attributes.width.value);
+			if (w > maxwidth)
+				maxwidth = w;
+
+			if (func.match(re)) {
+				// highlight
+				var x = parseFloat(rect.attributes.x.value);
+				orig_save(rect, "fill");
+				rect.attributes.fill.value = "rgb(230,0,230)";
+
+				// remember matches
+				if (matches[x] == undefined) {
+					matches[x] = w;
+				} else {
+					if (w > matches[x]) {
+						// overwrite with parent
+						matches[x] = w;
+					}
+				}
+				searching = 1;
+			}
+		}
+		if (!searching)
+			return;
+		var params = get_params();
+		params.s = currentSearchTerm;
+		history.replaceState(null, null, parse_params(params));
+
+		searchbtn.classList.add("show");
+		searchbtn.firstChild.nodeValue = "Reset Search";
+
+		// calculate percent matched, excluding vertical overlap
+		var count = 0;
+		var lastx = -1;
+		var lastw = 0;
+		var keys = Array();
+		for (k in matches) {
+			if (matches.hasOwnProperty(k))
+				keys.push(k);
+		}
+		// sort the matched frames by their x location
+		// ascending, then width descending
+		keys.sort(function(a, b){
+			return a - b;
+		});
+		// Step through frames saving only the biggest bottom-up frames
+		// thanks to the sort order. This relies on the tree property
+		// where children are always smaller than their parents.
+		var fudge = 0.0001;	// JavaScript floating point
+		for (var k in keys) {
+			var x = parseFloat(keys[k]);
+			var w = matches[keys[k]];
+			if (x >= lastx + lastw - fudge) {
+				count += w;
+				lastx = x;
+				lastw = w;
+			}
+		}
+		// display matched percent
+		matchedtxt.classList.remove("hide");
+		var pct = 100 * count / maxwidth;
+		if (pct != 100) pct = pct.toFixed(1)
+		matchedtxt.firstChild.nodeValue = "Matched: " + pct + "%";
+	}
+]]>
+</script>
+<rect x="0.0" y="0" width="1200.0" height="662.0" fill="url(#background)"  />
+<text id="title" x="600.00" y="24" >Flame Graph</text>
+<text id="details" x="10.00" y="645" > </text>
+<text id="unzoom" x="10.00" y="24" class="hide">Reset Zoom</text>
+<text id="search" x="1090.00" y="24" >Search</text>
+<text id="ignorecase" x="1174.00" y="24" >ic</text>
+<text id="matched" x="1090.00" y="645" > </text>
+<g id="frames">
+<g >
+<title>java.lang.invoke.InnerClassLambdaMetafactory.buildCallSite (1 samples, 0.03%)</title><rect x="10.4" y="453" width="0.4" height="15.0" fill="rgb(243,177,42)" rx="2" ry="2" />
+<text  x="13.38" y="463.5" ></text>
+</g>
+<g >
+<title>java.lang.invoke.MethodType.invokerType (1 samples, 0.03%)</title><rect x="10.4" y="69" width="0.4" height="15.0" fill="rgb(229,114,27)" rx="2" ry="2" />
+<text  x="13.38" y="79.5" ></text>
+</g>
+<g >
+<title>java.util.Random.&lt;init&gt; (1 samples, 0.03%)</title><rect x="10.0" y="325" width="0.4" height="15.0" fill="rgb(252,216,51)" rx="2" ry="2" />
+<text  x="13.00" y="335.5" ></text>
+</g>
+<g >
+<title>java.lang.invoke.InvokerBytecodeGenerator.loadMethod (1 samples, 0.03%)</title><rect x="62.5" y="229" width="0.4" height="15.0" fill="rgb(244,183,43)" rx="2" ry="2" />
+<text  x="65.54" y="239.5" ></text>
+</g>
+<g >
+<title>java.lang.invoke.StringConcatFactory.makeConcatWithConstants (1 samples, 0.03%)</title><rect x="62.5" y="469" width="0.4" height="15.0" fill="rgb(213,40,9)" rx="2" ry="2" />
+<text  x="65.54" y="479.5" ></text>
+</g>
+<g >
+<title>java.util.concurrent.ForkJoinPool.scan (1 samples, 0.03%)</title><rect x="10.0" y="549" width="0.4" height="15.0" fill="rgb(246,192,46)" rx="2" ry="2" />
+<text  x="13.00" y="559.5" ></text>
+</g>
+<g >
+<title>java.util.Random.seedUniquifier (1,690 samples, 54.92%)</title><rect x="541.9" y="325" width="648.1" height="15.0" fill="rgb(234,137,32)" rx="2" ry="2" />
+<text  x="544.90" y="335.5" >java.util.Random.seedUniquifier</text>
+</g>
+<g >
+<title>java.util.concurrent.ForkJoinTask.doExec (1 samples, 0.03%)</title><rect x="10.0" y="517" width="0.4" height="15.0" fill="rgb(235,141,33)" rx="2" ry="2" />
+<text  x="13.00" y="527.5" ></text>
+</g>
+<g >
+<title>java.lang.invoke.MethodHandles$Lookup.findStatic (1 samples, 0.03%)</title><rect x="10.4" y="197" width="0.4" height="15.0" fill="rgb(236,142,34)" rx="2" ry="2" />
+<text  x="13.38" y="207.5" ></text>
+</g>
+<g >
+<title>java.lang.invoke.MethodHandles.constant (1 samples, 0.03%)</title><rect x="10.4" y="437" width="0.4" height="15.0" fill="rgb(241,167,39)" rx="2" ry="2" />
+<text  x="13.38" y="447.5" ></text>
+</g>
+<g >
+<title>java.lang.invoke.LambdaMetafactory.metafactory (1 samples, 0.03%)</title><rect x="10.4" y="469" width="0.4" height="15.0" fill="rgb(207,13,3)" rx="2" ry="2" />
+<text  x="13.38" y="479.5" ></text>
+</g>
+<g >
+<title>java.util.concurrent.ForkJoinPool.runWorker (1 samples, 0.03%)</title><rect x="10.0" y="565" width="0.4" height="15.0" fill="rgb(218,60,14)" rx="2" ry="2" />
+<text  x="13.00" y="575.5" ></text>
+</g>
+<g >
+<title>java.util.stream.ReduceOps$ReduceTask.doLeaf (1 samples, 0.03%)</title><rect x="10.0" y="469" width="0.4" height="15.0" fill="rgb(225,93,22)" rx="2" ry="2" />
+<text  x="13.00" y="479.5" ></text>
+</g>
+<g >
+<title>java.util.stream.StreamSpliterators$UnorderedSliceSpliterator$OfRef.forEachRemaining (1 samples, 0.03%)</title><rect x="10.0" y="405" width="0.4" height="15.0" fill="rgb(249,202,48)" rx="2" ry="2" />
+<text  x="13.00" y="415.5" ></text>
+</g>
+<g >
+<title>java.lang.invoke.CallSite.makeSite (1 samples, 0.03%)</title><rect x="10.4" y="533" width="0.4" height="15.0" fill="rgb(250,211,50)" rx="2" ry="2" />
+<text  x="13.38" y="543.5" ></text>
+</g>
+<g >
+<title>java.lang.invoke.BoundMethodHandle$Species_L.copyWithExtendL (1 samples, 0.03%)</title><rect x="62.5" y="373" width="0.4" height="15.0" fill="rgb(218,61,14)" rx="2" ry="2" />
+<text  x="65.54" y="383.5" ></text>
+</g>
+<g >
+<title>java.util.Random.&lt;init&gt; (84 samples, 2.73%)</title><rect x="30.3" y="277" width="32.2" height="15.0" fill="rgb(252,216,51)" rx="2" ry="2" />
+<text  x="33.32" y="287.5" >ja..</text>
+</g>
+<g >
+<title>java.util.stream.ReduceOps$ReduceTask.doLeaf (134 samples, 4.35%)</title><rect x="11.2" y="421" width="51.3" height="15.0" fill="rgb(225,93,22)" rx="2" ry="2" />
+<text  x="14.15" y="431.5" >java...</text>
+</g>
+<g >
+<title>java.lang.ClassLoader.defineClass0 (1 samples, 0.03%)</title><rect x="62.5" y="181" width="0.4" height="15.0" fill="rgb(207,12,2)" rx="2" ry="2" />
+<text  x="65.54" y="191.5" ></text>
+</g>
+<g >
+<title>java.util.stream.AbstractPipeline.wrapAndCopyInto (1 samples, 0.03%)</title><rect x="10.0" y="437" width="0.4" height="15.0" fill="rgb(239,157,37)" rx="2" ry="2" />
+<text  x="13.00" y="447.5" ></text>
+</g>
+<g >
+<title>java.util.concurrent.ForkJoinTask.doExec (134 samples, 4.35%)</title><rect x="11.2" y="469" width="51.3" height="15.0" fill="rgb(235,141,33)" rx="2" ry="2" />
+<text  x="14.15" y="479.5" >java...</text>
+</g>
+<g >
+<title>jdk.internal.misc.Unsafe.ensureClassInitialized0 (1 samples, 0.03%)</title><rect x="10.4" y="341" width="0.4" height="15.0" fill="rgb(254,229,54)" rx="2" ry="2" />
+<text  x="13.38" y="351.5" ></text>
+</g>
+<g >
+<title>java.lang.invoke.StringConcatFactory.prepender (1 samples, 0.03%)</title><rect x="62.5" y="437" width="0.4" height="15.0" fill="rgb(223,86,20)" rx="2" ry="2" />
+<text  x="65.54" y="447.5" ></text>
+</g>
+<g >
+<title>java.lang.invoke.MethodHandles$Lookup.getDirectMethod (1 samples, 0.03%)</title><rect x="10.4" y="181" width="0.4" height="15.0" fill="rgb(212,34,8)" rx="2" ry="2" />
+<text  x="13.38" y="191.5" ></text>
+</g>
+<g >
+<title>java.util.stream.AbstractTask.compute (134 samples, 4.35%)</title><rect x="11.2" y="437" width="51.3" height="15.0" fill="rgb(239,158,37)" rx="2" ry="2" />
+<text  x="14.15" y="447.5" >java...</text>
+</g>
+<g >
+<title>java.util.concurrent.ForkJoinWorkerThread.run (1 samples, 0.03%)</title><rect x="10.0" y="581" width="0.4" height="15.0" fill="rgb(240,164,39)" rx="2" ry="2" />
+<text  x="13.00" y="591.5" ></text>
+</g>
+<g >
+<title>java.util.stream.AbstractPipeline.sourceSpliterator (1 samples, 0.03%)</title><rect x="10.8" y="533" width="0.4" height="15.0" fill="rgb(227,102,24)" rx="2" ry="2" />
+<text  x="13.77" y="543.5" ></text>
+</g>
+<g >
+<title>Rec08EstimatePI$$Lambda$1.0x0000000800001000.get (1,697 samples, 55.15%)</title><rect x="539.2" y="389" width="650.8" height="15.0" fill="rgb(225,93,22)" rx="2" ry="2" />
+<text  x="542.22" y="399.5" >Rec08EstimatePI$$Lambda$1.0x0000000800001000.get</text>
+</g>
+<g >
+<title>java.util.concurrent.ForkJoinWorkerThread.run (2,939 samples, 95.52%)</title><rect x="62.9" y="597" width="1127.1" height="15.0" fill="rgb(240,164,39)" rx="2" ry="2" />
+<text  x="65.92" y="607.5" >java.util.concurrent.ForkJoinWorkerThread.run</text>
+</g>
+<g >
+<title>java.lang.invoke.BoundMethodHandle$Specializer.&lt;init&gt; (1 samples, 0.03%)</title><rect x="10.4" y="309" width="0.4" height="15.0" fill="rgb(227,104,24)" rx="2" ry="2" />
+<text  x="13.38" y="319.5" ></text>
+</g>
+<g >
+<title>java.util.stream.StreamSpliterators$UnorderedSliceSpliterator.&lt;init&gt; (1 samples, 0.03%)</title><rect x="10.8" y="469" width="0.4" height="15.0" fill="rgb(239,158,37)" rx="2" ry="2" />
+<text  x="13.77" y="479.5" ></text>
+</g>
+<g >
+<title>java.lang.invoke.DirectMethodHandle.preparedLambdaForm (1 samples, 0.03%)</title><rect x="10.4" y="101" width="0.4" height="15.0" fill="rgb(250,208,49)" rx="2" ry="2" />
+<text  x="13.38" y="111.5" ></text>
+</g>
+<g >
+<title>java.lang.invoke.DirectMethodHandle.preparedLambdaForm (1 samples, 0.03%)</title><rect x="10.4" y="117" width="0.4" height="15.0" fill="rgb(250,208,49)" rx="2" ry="2" />
+<text  x="13.38" y="127.5" ></text>
+</g>
+<g >
+<title>java.lang.invoke.DirectMethodHandle.makePreparedLambdaForm (1 samples, 0.03%)</title><rect x="10.4" y="85" width="0.4" height="15.0" fill="rgb(232,127,30)" rx="2" ry="2" />
+<text  x="13.38" y="95.5" ></text>
+</g>
+<g >
+<title>java.lang.invoke.DirectMethodHandle$Holder.invokeStatic (1 samples, 0.03%)</title><rect x="62.5" y="485" width="0.4" height="15.0" fill="rgb(246,190,45)" rx="2" ry="2" />
+<text  x="65.54" y="495.5" ></text>
+</g>
+<g >
+<title>java.lang.invoke.Invokers$Holder.invokeExact_MT (1 samples, 0.03%)</title><rect x="10.4" y="501" width="0.4" height="15.0" fill="rgb(228,110,26)" rx="2" ry="2" />
+<text  x="13.38" y="511.5" ></text>
+</g>
+<g >
+<title>java.lang.invoke.MethodType.insertParameterTypes (1 samples, 0.03%)</title><rect x="10.4" y="53" width="0.4" height="15.0" fill="rgb(213,41,9)" rx="2" ry="2" />
+<text  x="13.38" y="63.5" ></text>
+</g>
+<g >
+<title>java.lang.invoke.DelegatingMethodHandle$Holder.delegate (1 samples, 0.03%)</title><rect x="62.5" y="501" width="0.4" height="15.0" fill="rgb(253,221,52)" rx="2" ry="2" />
+<text  x="65.54" y="511.5" ></text>
+</g>
+<g >
+<title>java.util.stream.SliceOps$1.opEvaluateParallelLazy (1 samples, 0.03%)</title><rect x="10.8" y="517" width="0.4" height="15.0" fill="rgb(205,2,0)" rx="2" ry="2" />
+<text  x="13.77" y="527.5" ></text>
+</g>
+<g >
+<title>java.util.stream.StreamSpliterators$InfiniteSupplyingSpliterator$OfRef.tryAdvance (1,697 samples, 55.15%)</title><rect x="539.2" y="405" width="650.8" height="15.0" fill="rgb(244,181,43)" rx="2" ry="2" />
+<text  x="542.22" y="415.5" >java.util.stream.StreamSpliterators$InfiniteSupplyingSpliterator$OfRef.tryAdvance</text>
+</g>
+<g >
+<title>java.util.concurrent.ForkJoinTask.doExec (2,939 samples, 95.52%)</title><rect x="62.9" y="533" width="1127.1" height="15.0" fill="rgb(235,141,33)" rx="2" ry="2" />
+<text  x="65.92" y="543.5" >java.util.concurrent.ForkJoinTask.doExec</text>
+</g>
+<g >
+<title>java.lang.invoke.MethodHandles.insertArguments (1 samples, 0.03%)</title><rect x="62.5" y="421" width="0.4" height="15.0" fill="rgb(230,116,27)" rx="2" ry="2" />
+<text  x="65.54" y="431.5" ></text>
+</g>
+<g >
+<title>java.lang.invoke.MethodType.checkPtypes (1 samples, 0.03%)</title><rect x="10.4" y="37" width="0.4" height="15.0" fill="rgb(217,55,13)" rx="2" ry="2" />
+<text  x="13.38" y="47.5" ></text>
+</g>
+<g >
+<title>java.security.AccessController.doPrivileged (1 samples, 0.03%)</title><rect x="10.8" y="421" width="0.4" height="15.0" fill="rgb(251,215,51)" rx="2" ry="2" />
+<text  x="13.77" y="431.5" ></text>
+</g>
+<g >
+<title>java.lang.System$2.defineClass (1 samples, 0.03%)</title><rect x="62.5" y="197" width="0.4" height="15.0" fill="rgb(207,13,3)" rx="2" ry="2" />
+<text  x="65.54" y="207.5" ></text>
+</g>
+<g >
+<title>all (3,077 samples, 100%)</title><rect x="10.0" y="613" width="1180.0" height="15.0" fill="rgb(213,39,9)" rx="2" ry="2" />
+<text  x="13.00" y="623.5" ></text>
+</g>
+<g >
+<title>java.util.Random.seedUniquifier (1 samples, 0.03%)</title><rect x="10.0" y="309" width="0.4" height="15.0" fill="rgb(234,137,32)" rx="2" ry="2" />
+<text  x="13.00" y="319.5" ></text>
+</g>
+<g >
+<title>java.util.concurrent.ForkJoinPool$1.run (1 samples, 0.03%)</title><rect x="10.8" y="373" width="0.4" height="15.0" fill="rgb(214,43,10)" rx="2" ry="2" />
+<text  x="13.77" y="383.5" ></text>
+</g>
+<g >
+<title>java.lang.invoke.MethodHandles.identity (1 samples, 0.03%)</title><rect x="10.4" y="421" width="0.4" height="15.0" fill="rgb(241,167,39)" rx="2" ry="2" />
+<text  x="13.38" y="431.5" ></text>
+</g>
+<g >
+<title>java.util.stream.ReduceOps$ReduceTask.doLeaf (2,939 samples, 95.52%)</title><rect x="62.9" y="485" width="1127.1" height="15.0" fill="rgb(225,93,22)" rx="2" ry="2" />
+<text  x="65.92" y="495.5" >java.util.stream.ReduceOps$ReduceTask.doLeaf</text>
+</g>
+<g >
+<title>java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec (1 samples, 0.03%)</title><rect x="10.0" y="533" width="0.4" height="15.0" fill="rgb(228,109,26)" rx="2" ry="2" />
+<text  x="13.00" y="543.5" ></text>
+</g>
+<g >
+<title>java.lang.invoke.DirectMethodHandle.make (1 samples, 0.03%)</title><rect x="10.4" y="149" width="0.4" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="13.38" y="159.5" ></text>
+</g>
+<g >
+<title>java.lang.invoke.ClassSpecializer$Factory.linkSpeciesDataToCode (1 samples, 0.03%)</title><rect x="10.4" y="245" width="0.4" height="15.0" fill="rgb(222,78,18)" rx="2" ry="2" />
+<text  x="13.38" y="255.5" ></text>
+</g>
+<g >
+<title>java.lang.invoke.BoundMethodHandle.&lt;init&gt; (1 samples, 0.03%)</title><rect x="62.5" y="309" width="0.4" height="15.0" fill="rgb(219,67,16)" rx="2" ry="2" />
+<text  x="65.54" y="319.5" ></text>
+</g>
+<g >
+<title>java.lang.invoke.CallSite.makeSite (1 samples, 0.03%)</title><rect x="62.5" y="549" width="0.4" height="15.0" fill="rgb(250,211,50)" rx="2" ry="2" />
+<text  x="65.54" y="559.5" ></text>
+</g>
+<g >
+<title>java.lang.invoke.StringConcatFactory.generateMHInlineCopy (1 samples, 0.03%)</title><rect x="62.5" y="453" width="0.4" height="15.0" fill="rgb(223,84,20)" rx="2" ry="2" />
+<text  x="65.54" y="463.5" ></text>
+</g>
+<g >
+<title>java.lang.invoke.ClassSpecializer$Factory.findFactories (1 samples, 0.03%)</title><rect x="10.4" y="229" width="0.4" height="15.0" fill="rgb(236,144,34)" rx="2" ry="2" />
+<text  x="13.38" y="239.5" ></text>
+</g>
+<g >
+<title>java.util.stream.StreamSpliterators$UnorderedSliceSpliterator$OfRef.&lt;init&gt; (1 samples, 0.03%)</title><rect x="10.8" y="485" width="0.4" height="15.0" fill="rgb(246,191,45)" rx="2" ry="2" />
+<text  x="13.77" y="495.5" ></text>
+</g>
+<g >
+<title>java.util.stream.SliceOps$1.unorderedSkipLimitSpliterator (1 samples, 0.03%)</title><rect x="10.8" y="501" width="0.4" height="15.0" fill="rgb(215,46,11)" rx="2" ry="2" />
+<text  x="13.77" y="511.5" ></text>
+</g>
+<g >
+<title>java.util.concurrent.ForkJoinPool.scan (2,939 samples, 95.52%)</title><rect x="62.9" y="565" width="1127.1" height="15.0" fill="rgb(246,192,46)" rx="2" ry="2" />
+<text  x="65.92" y="575.5" >java.util.concurrent.ForkJoinPool.scan</text>
+</g>
+<g >
+<title>java.util.stream.AbstractPipeline.wrapAndCopyInto (2,939 samples, 95.52%)</title><rect x="62.9" y="453" width="1127.1" height="15.0" fill="rgb(239,157,37)" rx="2" ry="2" />
+<text  x="65.92" y="463.5" >java.util.stream.AbstractPipeline.wrapAndCopyInto</text>
+</g>
+<g >
+<title>java.lang.invoke.LambdaForm.compileToBytecode (1 samples, 0.03%)</title><rect x="62.5" y="261" width="0.4" height="15.0" fill="rgb(238,153,36)" rx="2" ry="2" />
+<text  x="65.54" y="271.5" ></text>
+</g>
+<g >
+<title>java.util.concurrent.CountedCompleter.exec (134 samples, 4.35%)</title><rect x="11.2" y="453" width="51.3" height="15.0" fill="rgb(246,190,45)" rx="2" ry="2" />
+<text  x="14.15" y="463.5" >java...</text>
+</g>
+<g >
+<title>java.lang.invoke.LambdaFormEditor.bindArgumentL (1 samples, 0.03%)</title><rect x="62.5" y="389" width="0.4" height="15.0" fill="rgb(249,205,49)" rx="2" ry="2" />
+<text  x="65.54" y="399.5" ></text>
+</g>
+<g >
+<title>java.lang.invoke.MethodHandleNatives.linkCallSite (1 samples, 0.03%)</title><rect x="62.5" y="581" width="0.4" height="15.0" fill="rgb(215,49,11)" rx="2" ry="2" />
+<text  x="65.54" y="591.5" ></text>
+</g>
+<g >
+<title>java.lang.invoke.BootstrapMethodInvoker.invoke (1 samples, 0.03%)</title><rect x="10.4" y="517" width="0.4" height="15.0" fill="rgb(236,145,34)" rx="2" ry="2" />
+<text  x="13.38" y="527.5" ></text>
+</g>
+<g >
+<title>java.lang.invoke.BoundMethodHandle$Species_LL.make (1 samples, 0.03%)</title><rect x="62.5" y="341" width="0.4" height="15.0" fill="rgb(246,191,45)" rx="2" ry="2" />
+<text  x="65.54" y="351.5" ></text>
+</g>
+<g >
+<title>java.lang.invoke.MethodHandleNatives.linkCallSite (1 samples, 0.03%)</title><rect x="10.4" y="565" width="0.4" height="15.0" fill="rgb(215,49,11)" rx="2" ry="2" />
+<text  x="13.38" y="575.5" ></text>
+</g>
+<g >
+<title>java.util.Random.seedUniquifier (83 samples, 2.70%)</title><rect x="30.7" y="261" width="31.8" height="15.0" fill="rgb(234,137,32)" rx="2" ry="2" />
+<text  x="33.71" y="271.5" >ja..</text>
+</g>
+<g >
+<title>java.security.AccessController.executePrivileged (1 samples, 0.03%)</title><rect x="10.8" y="405" width="0.4" height="15.0" fill="rgb(237,150,35)" rx="2" ry="2" />
+<text  x="13.77" y="415.5" ></text>
+</g>
+<g >
+<title>java.util.stream.ReduceOps$5.evaluateParallel (134 samples, 4.35%)</title><rect x="11.2" y="533" width="51.3" height="15.0" fill="rgb(229,110,26)" rx="2" ry="2" />
+<text  x="14.15" y="543.5" >java...</text>
+</g>
+<g >
+<title>java.lang.invoke.MethodHandle.&lt;init&gt; (1 samples, 0.03%)</title><rect x="62.5" y="293" width="0.4" height="15.0" fill="rgb(225,94,22)" rx="2" ry="2" />
+<text  x="65.54" y="303.5" ></text>
+</g>
+<g >
+<title>java.util.concurrent.CountedCompleter.exec (1 samples, 0.03%)</title><rect x="10.0" y="501" width="0.4" height="15.0" fill="rgb(246,190,45)" rx="2" ry="2" />
+<text  x="13.00" y="511.5" ></text>
+</g>
+<g >
+<title>java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec (2,939 samples, 95.52%)</title><rect x="62.9" y="549" width="1127.1" height="15.0" fill="rgb(228,109,26)" rx="2" ry="2" />
+<text  x="65.92" y="559.5" >java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec</text>
+</g>
+<g >
+<title>java.lang.invoke.DirectMethodHandle$Holder.invokeStatic (1 samples, 0.03%)</title><rect x="62.5" y="357" width="0.4" height="15.0" fill="rgb(246,190,45)" rx="2" ry="2" />
+<text  x="65.54" y="367.5" ></text>
+</g>
+<g >
+<title>java.util.stream.ReduceOps$ReduceTask.doLeaf (134 samples, 4.35%)</title><rect x="11.2" y="405" width="51.3" height="15.0" fill="rgb(225,93,22)" rx="2" ry="2" />
+<text  x="14.15" y="415.5" >java...</text>
+</g>
+<g >
+<title>java.util.stream.StreamSpliterators$UnorderedSliceSpliterator$OfRef.forEachRemaining (134 samples, 4.35%)</title><rect x="11.2" y="357" width="51.3" height="15.0" fill="rgb(249,202,48)" rx="2" ry="2" />
+<text  x="14.15" y="367.5" >java...</text>
+</g>
+<g >
+<title>java.lang.invoke.DirectMethodHandle.preparedLambdaForm (1 samples, 0.03%)</title><rect x="10.4" y="133" width="0.4" height="15.0" fill="rgb(250,208,49)" rx="2" ry="2" />
+<text  x="13.38" y="143.5" ></text>
+</g>
+<g >
+<title>java.util.concurrent.locks.ReentrantLock.&lt;init&gt; (1 samples, 0.03%)</title><rect x="10.8" y="341" width="0.4" height="15.0" fill="rgb(249,204,48)" rx="2" ry="2" />
+<text  x="13.77" y="351.5" ></text>
+</g>
+<g >
+<title>java.lang.invoke.MethodHandleNatives.linkCallSiteImpl (1 samples, 0.03%)</title><rect x="62.5" y="565" width="0.4" height="15.0" fill="rgb(218,63,15)" rx="2" ry="2" />
+<text  x="65.54" y="575.5" ></text>
+</g>
+<g >
+<title>java.util.stream.AbstractPipeline.wrapAndCopyInto (134 samples, 4.35%)</title><rect x="11.2" y="389" width="51.3" height="15.0" fill="rgb(239,157,37)" rx="2" ry="2" />
+<text  x="14.15" y="399.5" >java...</text>
+</g>
+<g >
+<title>java.util.concurrent.ForkJoinPool.&lt;clinit&gt; (1 samples, 0.03%)</title><rect x="10.8" y="437" width="0.4" height="15.0" fill="rgb(224,90,21)" rx="2" ry="2" />
+<text  x="13.77" y="447.5" ></text>
+</g>
+<g >
+<title>java.util.stream.ReduceOps$ReduceTask.doLeaf (1 samples, 0.03%)</title><rect x="10.0" y="453" width="0.4" height="15.0" fill="rgb(225,93,22)" rx="2" ry="2" />
+<text  x="13.00" y="463.5" ></text>
+</g>
+<g >
+<title>java.util.concurrent.ForkJoinPool.runWorker (2,939 samples, 95.52%)</title><rect x="62.9" y="581" width="1127.1" height="15.0" fill="rgb(218,60,14)" rx="2" ry="2" />
+<text  x="65.92" y="591.5" >java.util.concurrent.ForkJoinPool.runWorker</text>
+</g>
+<g >
+<title>3 (1 samples, 0.03%)</title><rect x="10.0" y="597" width="0.4" height="15.0" fill="rgb(234,133,31)" rx="2" ry="2" />
+<text  x="13.00" y="607.5" ></text>
+</g>
+<g >
+<title>java.util.stream.StreamSpliterators$InfiniteSupplyingSpliterator$OfRef.tryAdvance (85 samples, 2.76%)</title><rect x="29.9" y="341" width="32.6" height="15.0" fill="rgb(244,181,43)" rx="2" ry="2" />
+<text  x="32.94" y="351.5" >ja..</text>
+</g>
+<g >
+<title>java.lang.invoke.LambdaForm.prepare (1 samples, 0.03%)</title><rect x="62.5" y="277" width="0.4" height="15.0" fill="rgb(224,87,21)" rx="2" ry="2" />
+<text  x="65.54" y="287.5" ></text>
+</g>
+<g >
+<title>java.lang.invoke.InvokerBytecodeGenerator.generateCustomizedCode (1 samples, 0.03%)</title><rect x="62.5" y="245" width="0.4" height="15.0" fill="rgb(205,1,0)" rx="2" ry="2" />
+<text  x="65.54" y="255.5" ></text>
+</g>
+<g >
+<title>jdk.internal.misc.Unsafe.ensureClassInitialized (1 samples, 0.03%)</title><rect x="10.4" y="357" width="0.4" height="15.0" fill="rgb(215,46,11)" rx="2" ry="2" />
+<text  x="13.38" y="367.5" ></text>
+</g>
+<g >
+<title>java.util.concurrent.ForkJoinTask.invoke (134 samples, 4.35%)</title><rect x="11.2" y="485" width="51.3" height="15.0" fill="rgb(249,206,49)" rx="2" ry="2" />
+<text  x="14.15" y="495.5" >java...</text>
+</g>
+<g >
+<title>java.util.Random.&lt;init&gt; (1 samples, 0.03%)</title><rect x="30.3" y="261" width="0.4" height="15.0" fill="rgb(252,216,51)" rx="2" ry="2" />
+<text  x="33.32" y="271.5" ></text>
+</g>
+<g >
+<title>java.lang.invoke.BoundMethodHandle.bindArgumentL (1 samples, 0.03%)</title><rect x="62.5" y="405" width="0.4" height="15.0" fill="rgb(221,75,18)" rx="2" ry="2" />
+<text  x="65.54" y="415.5" ></text>
+</g>
+<g >
+<title>RandomPoint.&lt;init&gt; (1,691 samples, 54.96%)</title><rect x="541.5" y="357" width="648.5" height="15.0" fill="rgb(205,2,0)" rx="2" ry="2" />
+<text  x="544.52" y="367.5" >RandomPoint.&lt;init&gt;</text>
+</g>
+<g >
+<title>java.util.stream.AbstractPipeline.copyInto (134 samples, 4.35%)</title><rect x="11.2" y="373" width="51.3" height="15.0" fill="rgb(214,42,10)" rx="2" ry="2" />
+<text  x="14.15" y="383.5" >java...</text>
+</g>
+<g >
+<title>java.util.stream.AbstractTask.compute (1 samples, 0.03%)</title><rect x="10.0" y="485" width="0.4" height="15.0" fill="rgb(239,158,37)" rx="2" ry="2" />
+<text  x="13.00" y="495.5" ></text>
+</g>
+<g >
+<title>java.util.stream.ReferencePipeline.count (135 samples, 4.39%)</title><rect x="10.8" y="565" width="51.7" height="15.0" fill="rgb(214,43,10)" rx="2" ry="2" />
+<text  x="13.77" y="575.5" >java...</text>
+</g>
+<g >
+<title>Rec08EstimatePI$$Lambda$1.0x0000000800001000.get (1 samples, 0.03%)</title><rect x="10.0" y="373" width="0.4" height="15.0" fill="rgb(225,93,22)" rx="2" ry="2" />
+<text  x="13.00" y="383.5" ></text>
+</g>
+<g >
+<title>RandomPoint.&lt;init&gt; (1 samples, 0.03%)</title><rect x="10.0" y="341" width="0.4" height="15.0" fill="rgb(205,2,0)" rx="2" ry="2" />
+<text  x="13.00" y="351.5" ></text>
+</g>
+<g >
+<title>Rec08EstimatePI.estimatePiParallelStream (136 samples, 4.42%)</title><rect x="10.4" y="581" width="52.1" height="15.0" fill="rgb(228,106,25)" rx="2" ry="2" />
+<text  x="13.38" y="591.5" >Rec08..</text>
+</g>
+<g >
+<title>Rec08EstimatePI$$Lambda$1.0x0000000800001000.get (85 samples, 2.76%)</title><rect x="29.9" y="325" width="32.6" height="15.0" fill="rgb(225,93,22)" rx="2" ry="2" />
+<text  x="32.94" y="335.5" >Re..</text>
+</g>
+<g >
+<title>java.lang.invoke.DirectMethodHandle$Holder.invokeStatic (1 samples, 0.03%)</title><rect x="10.4" y="485" width="0.4" height="15.0" fill="rgb(246,190,45)" rx="2" ry="2" />
+<text  x="13.38" y="495.5" ></text>
+</g>
+<g >
+<title>java.lang.invoke.ClassSpecializer$Factory.findFactory (1 samples, 0.03%)</title><rect x="10.4" y="213" width="0.4" height="15.0" fill="rgb(228,107,25)" rx="2" ry="2" />
+<text  x="13.38" y="223.5" ></text>
+</g>
+<g >
+<title>java.lang.invoke.MethodHandles$Lookup$ClassDefiner.defineClass (1 samples, 0.03%)</title><rect x="62.5" y="213" width="0.4" height="15.0" fill="rgb(213,40,9)" rx="2" ry="2" />
+<text  x="65.54" y="223.5" ></text>
+</g>
+<g >
+<title>java.lang.invoke.LambdaForm.createFormsFor (1 samples, 0.03%)</title><rect x="10.4" y="373" width="0.4" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="13.38" y="383.5" ></text>
+</g>
+<g >
+<title>java.lang.invoke.MethodHandleNatives.linkCallSiteImpl (1 samples, 0.03%)</title><rect x="10.4" y="549" width="0.4" height="15.0" fill="rgb(218,63,15)" rx="2" ry="2" />
+<text  x="13.38" y="559.5" ></text>
+</g>
+<g >
+<title>java.lang.invoke.LambdaForm.identityForm (1 samples, 0.03%)</title><rect x="10.4" y="389" width="0.4" height="15.0" fill="rgb(219,67,16)" rx="2" ry="2" />
+<text  x="13.38" y="399.5" ></text>
+</g>
+<g >
+<title>java.util.stream.AbstractPipeline.copyInto (2,939 samples, 95.52%)</title><rect x="62.9" y="437" width="1127.1" height="15.0" fill="rgb(214,42,10)" rx="2" ry="2" />
+<text  x="65.92" y="447.5" >java.util.stream.AbstractPipeline.copyInto</text>
+</g>
+<g >
+<title>java.lang.invoke.BootstrapMethodInvoker.invoke (1 samples, 0.03%)</title><rect x="62.5" y="533" width="0.4" height="15.0" fill="rgb(236,145,34)" rx="2" ry="2" />
+<text  x="65.54" y="543.5" ></text>
+</g>
+<g >
+<title>java.util.concurrent.CountedCompleter.exec (2,939 samples, 95.52%)</title><rect x="62.9" y="517" width="1127.1" height="15.0" fill="rgb(246,190,45)" rx="2" ry="2" />
+<text  x="65.92" y="527.5" >java.util.concurrent.CountedCompleter.exec</text>
+</g>
+<g >
+<title>java.util.stream.AbstractTask.&lt;clinit&gt; (1 samples, 0.03%)</title><rect x="10.8" y="453" width="0.4" height="15.0" fill="rgb(239,158,37)" rx="2" ry="2" />
+<text  x="13.77" y="463.5" ></text>
+</g>
+<g >
+<title>java.util.stream.AbstractPipeline.evaluate (135 samples, 4.39%)</title><rect x="10.8" y="549" width="51.7" height="15.0" fill="rgb(251,213,51)" rx="2" ry="2" />
+<text  x="13.77" y="559.5" >java...</text>
+</g>
+<g >
+<title>RandomPoint.&lt;init&gt; (84 samples, 2.73%)</title><rect x="30.3" y="293" width="32.2" height="15.0" fill="rgb(205,2,0)" rx="2" ry="2" />
+<text  x="33.32" y="303.5" >Ra..</text>
+</g>
+<g >
+<title>Rec08EstimatePI.lambda$estimatePiParallelStream$2 (85 samples, 2.76%)</title><rect x="29.9" y="309" width="32.6" height="15.0" fill="rgb(205,4,1)" rx="2" ry="2" />
+<text  x="32.94" y="319.5" >Re..</text>
+</g>
+<g >
+<title>Rec08EstimatePI.lambda$estimatePiParallelStream$2 (1,697 samples, 55.15%)</title><rect x="539.2" y="373" width="650.8" height="15.0" fill="rgb(205,4,1)" rx="2" ry="2" />
+<text  x="542.22" y="383.5" >Rec08EstimatePI.lambda$estimatePiParallelStream$2</text>
+</g>
+<g >
+<title>Rec08EstimatePI.main (137 samples, 4.45%)</title><rect x="10.4" y="597" width="52.5" height="15.0" fill="rgb(216,51,12)" rx="2" ry="2" />
+<text  x="13.38" y="607.5" >Rec08..</text>
+</g>
+<g >
+<title>java.lang.invoke.ClassSpecializer.findSpecies (1 samples, 0.03%)</title><rect x="10.4" y="277" width="0.4" height="15.0" fill="rgb(241,166,39)" rx="2" ry="2" />
+<text  x="13.38" y="287.5" ></text>
+</g>
+<g >
+<title>java.util.concurrent.ForkJoinPool$1.run (1 samples, 0.03%)</title><rect x="10.8" y="389" width="0.4" height="15.0" fill="rgb(214,43,10)" rx="2" ry="2" />
+<text  x="13.77" y="399.5" ></text>
+</g>
+<g >
+<title>java.util.stream.ReduceOps$ReduceTask.doLeaf (2,939 samples, 95.52%)</title><rect x="62.9" y="469" width="1127.1" height="15.0" fill="rgb(225,93,22)" rx="2" ry="2" />
+<text  x="65.92" y="479.5" >java.util.stream.ReduceOps$ReduceTask.doLeaf</text>
+</g>
+<g >
+<title>java.lang.invoke.BoundMethodHandle$Species_LL.&lt;init&gt; (1 samples, 0.03%)</title><rect x="62.5" y="325" width="0.4" height="15.0" fill="rgb(216,52,12)" rx="2" ry="2" />
+<text  x="65.54" y="335.5" ></text>
+</g>
+<g >
+<title>java.lang.invoke.ClassSpecializer.&lt;init&gt; (1 samples, 0.03%)</title><rect x="10.4" y="293" width="0.4" height="15.0" fill="rgb(205,2,0)" rx="2" ry="2" />
+<text  x="13.38" y="303.5" ></text>
+</g>
+<g >
+<title>java.util.stream.StreamSpliterators$InfiniteSupplyingSpliterator$OfRef.tryAdvance (1 samples, 0.03%)</title><rect x="10.0" y="389" width="0.4" height="15.0" fill="rgb(244,181,43)" rx="2" ry="2" />
+<text  x="13.00" y="399.5" ></text>
+</g>
+<g >
+<title>java.util.stream.StreamSpliterators$UnorderedSliceSpliterator$OfRef.forEachRemaining (2,939 samples, 95.52%)</title><rect x="62.9" y="421" width="1127.1" height="15.0" fill="rgb(249,202,48)" rx="2" ry="2" />
+<text  x="65.92" y="431.5" >java.util.stream.StreamSpliterators$UnorderedSliceSpliterator$OfRef.forEachRemaining</text>
+</g>
+<g >
+<title>java.util.stream.ReduceOps$ReduceOp.evaluateParallel (134 samples, 4.35%)</title><rect x="11.2" y="501" width="51.3" height="15.0" fill="rgb(211,30,7)" rx="2" ry="2" />
+<text  x="14.15" y="511.5" >java...</text>
+</g>
+<g >
+<title>java.util.concurrent.ForkJoinPool.&lt;init&gt; (1 samples, 0.03%)</title><rect x="10.8" y="357" width="0.4" height="15.0" fill="rgb(211,31,7)" rx="2" ry="2" />
+<text  x="13.77" y="367.5" ></text>
+</g>
+<g >
+<title>java.lang.invoke.ClassSpecializer$Factory.loadSpecies (1 samples, 0.03%)</title><rect x="10.4" y="261" width="0.4" height="15.0" fill="rgb(212,33,8)" rx="2" ry="2" />
+<text  x="13.38" y="271.5" ></text>
+</g>
+<g >
+<title>Rec08EstimatePI.lambda$estimatePiParallelStream$2 (1 samples, 0.03%)</title><rect x="10.0" y="357" width="0.4" height="15.0" fill="rgb(205,4,1)" rx="2" ry="2" />
+<text  x="13.00" y="367.5" ></text>
+</g>
+<g >
+<title>java.util.stream.ReduceOps$5.evaluateParallel (134 samples, 4.35%)</title><rect x="11.2" y="517" width="51.3" height="15.0" fill="rgb(229,110,26)" rx="2" ry="2" />
+<text  x="14.15" y="527.5" >java...</text>
+</g>
+<g >
+<title>java.util.Random.&lt;init&gt; (1,691 samples, 54.96%)</title><rect x="541.5" y="341" width="648.5" height="15.0" fill="rgb(252,216,51)" rx="2" ry="2" />
+<text  x="544.52" y="351.5" >java.util.Random.&lt;init&gt;</text>
+</g>
+<g >
+<title>java.util.stream.AbstractPipeline.copyInto (1 samples, 0.03%)</title><rect x="10.0" y="421" width="0.4" height="15.0" fill="rgb(214,42,10)" rx="2" ry="2" />
+<text  x="13.00" y="431.5" ></text>
+</g>
+<g >
+<title>java.lang.invoke.MethodHandles.makeIdentity (1 samples, 0.03%)</title><rect x="10.4" y="405" width="0.4" height="15.0" fill="rgb(223,85,20)" rx="2" ry="2" />
+<text  x="13.38" y="415.5" ></text>
+</g>
+<g >
+<title>java.util.Random.&lt;init&gt; (1 samples, 0.03%)</title><rect x="541.5" y="325" width="0.4" height="15.0" fill="rgb(252,216,51)" rx="2" ry="2" />
+<text  x="544.52" y="335.5" ></text>
+</g>
+<g >
+<title>java.lang.invoke.Invokers$Holder.invokeExact_MT (1 samples, 0.03%)</title><rect x="62.5" y="517" width="0.4" height="15.0" fill="rgb(228,110,26)" rx="2" ry="2" />
+<text  x="65.54" y="527.5" ></text>
+</g>
+<g >
+<title>java.lang.invoke.MethodHandles$Lookup.getDirectMethodCommon (1 samples, 0.03%)</title><rect x="10.4" y="165" width="0.4" height="15.0" fill="rgb(226,100,24)" rx="2" ry="2" />
+<text  x="13.38" y="175.5" ></text>
+</g>
+<g >
+<title>java.util.stream.AbstractTask.compute (2,939 samples, 95.52%)</title><rect x="62.9" y="501" width="1127.1" height="15.0" fill="rgb(239,158,37)" rx="2" ry="2" />
+<text  x="65.92" y="511.5" >java.util.stream.AbstractTask.compute</text>
+</g>
+<g >
+<title>java.lang.invoke.BoundMethodHandle.&lt;clinit&gt; (1 samples, 0.03%)</title><rect x="10.4" y="325" width="0.4" height="15.0" fill="rgb(232,126,30)" rx="2" ry="2" />
+<text  x="13.38" y="335.5" ></text>
+</g>
+</g>
+</svg>
