@@ -1,6 +1,6 @@
 ---
 title: "About"
-date: 2022-05-03T15:07:55+08:00
+date: 2025-03-12T15:07:55+08:00
 draft: false
 ---
 
@@ -9,7 +9,6 @@ draft: false
 Hi there, my name is Adhy! :wave:
 
 I am a computer enthusiast who love building and breaking stuff related to computers :computer:
-Currently, I am a Full Time Teaching Assistant at the National University of Singapore :tiger:
 
 ## About This Page
 
@@ -27,11 +26,17 @@ In my free time, I occasionally play badminton and Dota 2 with my friends. I als
 ## My Experiences
 
 ---
+**Site Reliability Engineer, UBS** :key:
+
+Singapore, Jul 2024 - Present
+
+I am currently working as a Graduate Talent Program in UBS. I am doing half production support, half software development. Really enjoying my time here!
+
 **Full Time Teaching Assistant, NUS** :mortar_board:
 
-Singapore, Jul 2023 - Present
+Singapore, Jul 2023 - Jun 2024
 
-I am currently teaching CS2040, an introductory module about data structures and algorithms. I talk about numerous data structures (e.g. Hash Tables, Heap, BST, DSU) and algorithms (e.g. Quick Select, Kruskal's and Prim's, Floyd-Warshall, Dijkstra), which are crucial to write efficient and performant software.
+I taught CS2040, an introductory module about data structures and algorithms. I talked about numerous data structures (e.g. Hash Tables, Heap, BST, DSU) and algorithms (e.g. Quick Select, Kruskal's and Prim's, Floyd-Warshall, Dijkstra), which are crucial to write efficient and performant software.
 
 Prior to this, I was busy preaching about writing clean, extensible, and maintainable code in CS2030S. The first half of the module covers basic OOP concepts such as encapsulation, abstraction, inheritance, and polymorphism. The second half gives an introduction to immutability and functional programming, as well as other interesting CS concepts such as lazy evaluation, asynchronous programming, and task deque and work-stealing.
 
